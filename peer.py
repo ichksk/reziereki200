@@ -25,12 +25,15 @@ class Peer:
     def client(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             while True:
-                if input("if ready, type OK:") == "OK":break
+                if input("if ready, type ok:") == "ok":break
             s.connect((self.opponent_ip, self.opponent_port))
 
             while True:
-                msg = input("")
+                msg = input(">>>")
                 s.sendall(msg.encode("utf-8"))
+                if msg == "quit":
+                    s.close()
+                    break
 
     def server(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -39,6 +42,9 @@ class Peer:
             connection, address = s.accept()
             while True:
                 data = connection.recv(self.buff)
+                if data == "quit":
+                    s.close()
+                    break
                 print(data.decode("utf-8"))
 
     def get_ip(self):

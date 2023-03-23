@@ -5,17 +5,6 @@
 
 import socket
 from threading import Thread
-import tkinter as tk
-
-class GUI:
-    def __init__(self) -> None:
-        self.root = tk.Tk()
-        self.mainframe = tk.Frame(self.root, width=800, height=600)
-        self.mainframe.pack()
-        self.peer = Peer()
-
-    def make_gui(self):
-        self.chat_frame = tk.Frame(self.mainframe)
 
 
 class Peer:

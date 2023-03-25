@@ -8,6 +8,6 @@ from peer import Peer
 
 if __name__ == "__main__":
     os.chdir(os.path.dirname(__file__))
-    my_port = 49001
+    my_port = 49000
     peer = Peer(my_port)
-    peer.start(("192.168.1.18", 49000))
+    peer.start(("192.168.1.18", 49001))

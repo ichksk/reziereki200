@@ -10,18 +10,17 @@ class Peer:
         self.mode = "chat"
         self.running = True
 
-
     def start(self, opponent):
         self.opponent_ip, self.opponent_port = opponent
         thread_client = Thread(target=self.client)
-        thread_client.start()
         thread_server = Thread(target=self.server)
+        thread_client.start()
         thread_server.start()
         thread_client.join()
         thread_server.join()
 
     def client(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        with  socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             while True:
                 result = s.connect_ex((self.opponent_ip, self.opponent_port))
                 if result == 0:
@@ -55,6 +54,7 @@ class Peer:
                         #send text
                         s.sendall(msg.encode("utf-8"))
 
+
     def server(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             s.bind((self.my_ip, self.my_port))
@@ -85,3 +85,31 @@ class Peer:
         IP = s.getsockname()[0]
         s.close()
         return IP
+
+    def find_peers(self):
+        def scan_lan(ip_address, port):
+            try:
+                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+                s.settimeout(1)
+                s.connect((ip_address, port))
+                s.close()
+                peers.append(ip_address)
+            except:
+                pass
+
+        threads = []
+        peers = []
+        for i in range(1, 255):
+            ip_address = f"{self.my_ip.split('.')[0]}.{self.my_ip.split('.')[1]}.{self.my_ip.split('.')[2]}.{i}"
+            thread = Thread(target=scan_lan, args=(ip_address, self.my_port))
+            threads.append(thread)
+            thread.start()
+        for thread in threads:
+            thread.join()
+        return peers
+
+if __name__ == "__main__":
+    p = Peer()
+    while True:
+        ps = p.find_peers()
+        print(ps)

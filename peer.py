@@ -3,9 +3,9 @@ import socket
 from threading import Thread
 
 class Peer:
-    def __init__(self, port=49000):
+    def __init__(self):
         self.my_ip = self.get_ip()
-        self.my_port = port
+        self.my_port = 29000
         self.buff = 4096
         self.mode = "chat"
         self.running = True
@@ -80,19 +80,18 @@ class Peer:
         self.mode = mode
 
     def get_ip(self):
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(('10.255.255.255', 1))
-        IP = s.getsockname()[0]
-        s.close()
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            s.settimeout(1)
+            s.connect(("10.255.255.255", 1))
+            IP = s.getsockname()[0]
         return IP
 
     def find_peers(self):
         def scan_lan(ip_address, port):
             try:
-                s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-                s.settimeout(1)
-                s.connect((ip_address, port))
-                s.close()
+                with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                    s.settimeout(1)
+                    s.connect((ip_address, port))
                 peers.append(ip_address)
             except:
                 pass
@@ -110,6 +109,5 @@ class Peer:
 
 if __name__ == "__main__":
     p = Peer()
-    while True:
-        ps = p.find_peers()
-        print(ps)
+    thread = Thread(target=p.server)
+    thread.start()

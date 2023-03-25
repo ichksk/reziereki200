@@ -5,13 +5,24 @@ from threading import Thread
 class Peer:
     def __init__(self):
         self.my_ip = self.get_ip()
-        self.my_port = 29000
+        self.server_port = 29000
+        self.port = 29000
         self.buff = 4096
         self.mode = "chat"
         self.running = True
 
-    def start(self, opponent):
-        self.opponent_ip, self.opponent_port = opponent
+    def start(self):
+        while True:
+            peers = self.find_peers()
+            if not len(peers) == 0:
+                print("peers found is:", peers)
+                print("select peer index(if not found, please select -1)")
+                idx = int(input(">>>"))
+
+                if idx != -1:
+                    self.opponent_ip = peers[idx]
+                    break
+
         thread_client = Thread(target=self.client)
         thread_server = Thread(target=self.server)
         thread_client.start()
@@ -22,7 +33,7 @@ class Peer:
     def client(self):
         with  socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
             while True:
-                result = s.connect_ex((self.opponent_ip, self.opponent_port))
+                result = s.connect_ex((self.opponent_ip, self.port))
                 if result == 0:
                     print("接続成功!")
                     break
@@ -57,7 +68,7 @@ class Peer:
 
     def server(self):
         with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.bind((self.my_ip, self.my_port))
+            s.bind((self.my_ip, self.port))
             s.listen(1)
             connection, address = s.accept()
             while self.running:
@@ -80,10 +91,11 @@ class Peer:
         self.mode = mode
 
     def get_ip(self):
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            s.settimeout(1)
-            s.connect(("10.255.255.255", 1))
-            IP = s.getsockname()[0]
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(('10.255.255.255', 1))
+        IP = s.getsockname()[0]
+        s.close()
+        print(IP)
         return IP
 
     def find_peers(self):
@@ -100,7 +112,7 @@ class Peer:
         peers = []
         for i in range(1, 255):
             ip_address = f"{self.my_ip.split('.')[0]}.{self.my_ip.split('.')[1]}.{self.my_ip.split('.')[2]}.{i}"
-            thread = Thread(target=scan_lan, args=(ip_address, self.my_port))
+            thread = Thread(target=scan_lan, args=(ip_address, self.port))
             threads.append(thread)
             thread.start()
         for thread in threads:
@@ -109,5 +121,4 @@ class Peer:
 
 if __name__ == "__main__":
     p = Peer()
-    thread = Thread(target=p.server)
-    thread.start()
+    p.start()
